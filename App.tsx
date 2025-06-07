@@ -148,34 +148,34 @@ export default function App() {
   
 
   
-  // Handle number input changes with validation
+  
   const handlePlayersChange = (text) => {
-    const num = parseInt(text) || 2; // Default to 2 if invalid
-    setPlayers(Math.min(Math.max(num, 2), 5)); // Clamp between 2-5
+    const num = parseInt(text) || 2; 
+    setPlayers(Math.min(Math.max(num, 2), 5)); 
   };
 
   const handleCardsPerPlayerChange = (text) => {
-    // Parse input or default to 4 if invalid
+    
     const num = parseInt(text) || 4;
     
-    // Calculate theoretical maximum based on total cards (50) and player count
+    
     const theoreticalMax = Math.floor(50 / players);
     
-    // Apply absolute maximum of 10 cards per player
+    
     const maxCards = Math.min(theoreticalMax, 10);
     
-    // Clamp value between minimum 4 and calculated maximum
+    
     const clampedValue = Math.min(Math.max(num, 4), maxCards);
     
-    // Update state with validated value
+    
     setCardsPerPlayer(clampedValue);
     
-    // Optional: Show warning if hitting max limit
+    
     if (clampedValue === maxCards) {
       console.warn(`Maximum cards per player reached (${maxCards}) with ${players} players`);
     }
   };
-  // Increment/decrement functions
+  
   const incrementPlayers = () => setPlayers(prev => Math.min(prev + 1, 5));
   const decrementPlayers = () => setPlayers(prev => Math.max(prev - 1, 2));
   const incrementCards = () => setCardsPerPlayer(prev => Math.min(prev + 1, 5));
@@ -188,7 +188,7 @@ export default function App() {
     setCardsShown(shown);
   }, [cardsPerPlayer]);
 
-  // ... (keep all your existing deck management functions)
+  
 
   return (
     <View style={styles.container}>
@@ -314,5 +314,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  // ... keep your other existing styles
+  
 });
