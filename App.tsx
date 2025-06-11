@@ -1,194 +1,174 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { Platform, StyleSheet, ScrollView, TextInput, Text, View, TouchableOpacity } from 'react-native';
-import CardCheckboxComponent from "./components/CardCheckboxComponent";
-import YourHandComponent from './components/YourHandComponent';
-
+import MatrixComponent from './components/MatrixComponent';
+import CardComponent from './components/CardComponent';
+import HintComponent from './components/HintComponent';
 export default function App() {
   const [players, setPlayers] = useState(5);
   const [cardsPerPlayer, setCardsPerPlayer] = useState(5);
-  
-  
-
+  const [showHintDisplay, setHintDisplay] = useState(false);
+  const [probabilities, setProbabilities] = useState({});
+  const [chosen_colors, setChosenColors] = useState([]);
+  const [chosen_numbers, setChosenNumbers] = useState([]);
   const card_colors = ['Red', 'Green', 'Blue', 'Yellow', 'White'];
   const card_freq = {
-    1:3,
-    2:2,
-    3:2,
-    4:2,
-    5:1
-  }
-
-  const opts = {
-    color: [...card_colors, "?"],
-    number: [...Object.keys(card_freq),"?"]
+    1: 3,
+    2: 2,
+    3: 2,
+    4: 2,
+    5: 1
   };
-  
-  const [current_deck, setDeck] = useState({});
-  const [cardsShown, setCardsShown] = useState({}); 
-  const [matrix, setMatrix] = useState([]);
+  useEffect(() => {
+    setChosenColors(Array(cardsPerPlayer).fill("Select"));
+    setChosenNumbers(Array(cardsPerPlayer).fill("Select"));    
+    load_tables();
+  }, [cardsPerPlayer]);
 
+  function apply_change(type, idx, value){
+    if(type === "color"){
+      setChosenColors(prev => {
+        const newColors = [...prev];
+        newColors[idx] = value;
+        return newColors;
+      });
+    }else{
+      setChosenNumbers(prev => {
+        const newNumbers = [...prev];
+        newNumbers[idx] = value;
+        return newNumbers;
+      });
+    }
+  }
+  const handleCellPress = (rowIndex, colIndex, newValue) => {
+    setMatrix(prevMatrix => {
+      const newMatrix = [...prevMatrix];
+      newMatrix[rowIndex] = [...newMatrix[rowIndex]];
+      newMatrix[rowIndex][colIndex] = newValue;
+      return newMatrix;
+    });
+  };
+  const [matrix, setMatrix] = useState<number[][]>([]);
+  function apply_hint(card, hintType) {
+    let newProbabilities = { ...probabilities };
+    let card_probs = probabilities[card];
+    console.log(`Card Probabilities: ${JSON.stringify(card_probs)}`);
+
+    if(card_colors.includes(hintType)){
+      for(let color of card_colors){
+        if(color === hintType){
+          card_probs.color[color] = 1;
+        }else{
+          card_probs.color[color] = 0;
+        }
+      }
+    }else{
+      for(let number of Object.keys(card_freq)){
+        if(number === hintType){
+          card_probs.number[number] = 1;
+        }else{
+          card_probs.number[number] = 0;
+        }
+      }
+    }
+  }
+  function load_tables(){
+    var arr = {};
+    for(let i = 0; i < cardsPerPlayer; i++){  
+      arr[i] ={
+        color: {
+          "Red": 0,
+          "Green": 0,
+          "Blue": 0,
+          "Yellow": 0,
+          "White": 0
+        },
+        number: {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
+        }
+      }
+    }
+    setProbabilities(arr);
+  }
+  function reset_card(idx){
+    let new_prob = {
+      color: {
+        "Red": 0,
+        "Green": 0,
+        "Blue": 0,
+        "Yellow": 0,
+        "White": 0
+      },
+      number: {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      }
+    };
+    let new_probs = { ...probabilities };
+    let nc = [...chosen_colors];
+    let nn = [...chosen_numbers];
+    new_probs[idx] = new_prob;
+    setProbabilities(new_probs);
+    nc[idx] = "Select";
+    nn[idx] = "Select";
+    setChosenColors(nc);
+    setChosenNumbers(nn);
+
+
+  }
 
   useEffect(() => {
-    let deck = load_deck(false);
-    let shown = load_deck(true);
-    setDeck(deck);
-    setCardsShown(shown);
-  }, [cardsPerPlayer])
+    loadMatrix();
+  }, []);
 
-  function update_matrix(name, num, val){
-    const name_index = card_colors.indexOf(name);
-    let row = matrix[name_index];
-    row[num] = row[num] + val;
-    let new_matrix = [...matrix];
-    new_matrix[name_index] = row;
-    setMatrix(new_matrix);
-  }
-
-  function load_deck(empty){
-    console.log("Loading deck here");
-    if(empty == false){
-      let deck = {};
-      var new_matrix = [];
-      for (let name of card_colors){
-        let color_arr = [];
-        let row = [];
-        for (let key in card_freq){
-          row.push(card_freq[key]);
-          for (let i = 0; i < card_freq[key]; i++){
-              color_arr.push(key);
-          }
-        }
-        new_matrix.push(row);
-        deck[name] = color_arr;
-      }
-      console.log(deck);
-      setMatrix(new_matrix)
-      return deck;
-    }else{
-      console.log("Loading empty deck");
-      let deck = {};
-      for (let name of card_colors){
-        deck[name] = [];
-      }
-      console.log(deck);
-      return deck;
-    }
-  }
-
-  function remove(arr, x) {
-    console.log(arr);
-    let i = arr.indexOf(x);
-    if (i !== -1) {
-        arr.splice(i, 1);
-    }
-    return arr;
-  }
-  function get_index(card_name){
-    let card_type = parseInt(card_name.split("-")[1]);
-    let card_num = parseInt(card_name.split("-")[2]);
-    var index = 0;
-    
-    for(let i = 1; i < card_type; i++){
-      index += card_freq[i];
-    }
-    return index + card_num;
-  }
-
-  function sort_by_color(arr){
-    let new_arr = arr.sort((a, b) => {
-      return a-b;
+  function loadMatrix() {
+    const newMatrix = card_colors.map(color => {
+      return Object.keys(card_freq).map(num => {
+        return card_freq[num as unknown as keyof typeof card_freq];
+      });
     });
-    return new_arr;
+    setMatrix(newMatrix);
   }
 
-  function swap_decks(deck1, deck2, card_type, card_name,direction){
-    console.log(`Moving the ${card_type} ${card_name} to the ${direction}`);
-    var old_cards = deck1[card_type];
-    old_cards = remove(old_cards, card_name);
-    old_cards = old_cards.sort((a, b) => {
-      return a-b;
-    });
-    var new_cards = deck2[card_type];
-    new_cards.push(card_name);
-    new_cards = new_cards.sort((a, b) => {
-      return a-b;
-    });
-    if(direction == "Deck"){
-      update_matrix(card_type, card_name,1);
-      setDeck({
-        ...deck2,
-        [card_type]: new_cards
-      });
-
-      setCardsShown({
-        ...deck1,
-        [card_type]: old_cards
-      });
-    }else if(direction == "Shown"){
-      update_matrix(card_type, card_name,1);
-      setCardsShown({
-        ...deck2,
-        [card_type]: new_cards
-      });
-      setDeck({
-        ...deck1,
-        [card_type]: old_cards
-      });
-    }
-  }
-  
-  
-  function change_status(title, card_name, card_type){
-    if(title == "Shown"){
-      swap_decks(cardsShown, current_deck, card_type, card_name,"Deck");
-    }else{
-      swap_decks(current_deck, cardsShown, card_type, card_name,"Shown");
-    }
-  }
-  
-
-  
-  
-  const handlePlayersChange = (text) => {
+  const handlePlayersChange = (text: string) => {
     const num = parseInt(text) || 2; 
     setPlayers(Math.min(Math.max(num, 2), 5)); 
   };
 
-  const handleCardsPerPlayerChange = (text) => {
-    
+  const handleCardsPerPlayerChange = (text: string) => {
     const num = parseInt(text) || 4;
-    
-    
     const theoreticalMax = Math.floor(50 / players);
-    
-    
     const maxCards = Math.min(theoreticalMax, 10);
-    
-    
     const clampedValue = Math.min(Math.max(num, 4), maxCards);
-    
-    
     setCardsPerPlayer(clampedValue);
-    
     
     if (clampedValue === maxCards) {
       console.warn(`Maximum cards per player reached (${maxCards}) with ${players} players`);
     }
   };
+  function addHint(){
+    setHintDisplay(true); 
+  }
+
+
+
+  function complete_hint(cards, hintType) {
+    for(let card of cards){
+      apply_hint(card, hintType);
+    }
+    setHintDisplay(false);
+  }
   
   const incrementPlayers = () => setPlayers(prev => Math.min(prev + 1, 5));
   const decrementPlayers = () => setPlayers(prev => Math.max(prev - 1, 2));
-  const incrementCards = () => setCardsPerPlayer(prev => Math.min(prev + 1, 5));
-  const decrementCards = () => setCardsPerPlayer(prev => Math.max(prev - 1, 3));
-
-  useEffect(() => {
-    let deck = load_deck(false);
-    let shown = load_deck(true);
-    setDeck(deck);
-    setCardsShown(shown);
-  }, [cardsPerPlayer]);
-
-  
+  const incrementCards = () => setCardsPerPlayer(prev => Math.min(prev + 1, 10));
+  const decrementCards = () => setCardsPerPlayer(prev => Math.max(prev - 1, 4));
 
   return (
     <View style={styles.container}>
@@ -232,23 +212,38 @@ export default function App() {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.deckContainer}>
-          <CardCheckboxComponent given_title={"Deck"} cards_to_show={current_deck} changeStatus={change_status} />
-          <CardCheckboxComponent given_title={"Shown"} cards_to_show={cardsShown} changeStatus={change_status} />
-        </View>
-        <YourHandComponent 
-          deck={current_deck} 
-          discard={cardsShown} 
-          options={opts} 
-          cards_per_player={cardsPerPlayer} 
-          frequencies={card_freq} 
+      <MatrixComponent 
+          matrix={matrix} 
+          colors={card_colors} 
+          numbers={Object.keys(card_freq)} 
+          originalFrequencies={card_freq}
+          onCellPress={handleCellPress}
         />
+      <TouchableOpacity onPress={addHint} style={styles.hintBtn}>
+        <Text style={styles.hintText}>Add Hint</Text>
+        <HintComponent showHintDisplay={showHintDisplay} number_cards={cardsPerPlayer} colors={card_colors} numbers={Object.keys(card_freq)} return={complete_hint}/>
+      </TouchableOpacity>
+      <ScrollView horizontal={true} style={{ marginTop: 20 }} contentContainerStyle={styles.cardHdr}>
+        {Object.keys(probabilities).map((card, index) => (
+          <View key={index} style={styles.deckContainer}>
+            <CardComponent
+              idx={index}
+              color={chosen_colors[index]}
+              number={chosen_numbers[index]}
+              options={{
+                color: card_colors,
+                number: Object.keys(card_freq)
+              }}
+              probabilities={probabilities[card]}
+              resetCard={() => reset_card(index)}
+
+            />
+          </View>
+        ))}
       </ScrollView>
+
+      
+
     </View>
   );
 }
@@ -267,6 +262,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+  hintText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color:'white',
+  },
   settingLabel: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -276,6 +276,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+
+  cardHdr: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
+    marginTop: 20,
+  },
+
   numberInput: {
     height: 40,
     width: 50,
@@ -284,6 +292,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     textAlign: 'center',
     marginHorizontal: 5,
+  },
+  hintBtn: {
+    width: 140,
+    height: 60,
+    backgroundColor: '#a0a0ff',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   controlButton: {
     width: 40,
@@ -306,13 +322,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingBottom: 20,
-  },
   deckContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 20,
   },
-  
 });
