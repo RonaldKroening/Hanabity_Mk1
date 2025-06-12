@@ -23,13 +23,13 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "router": {
-        "origin": false  
+      "build": {
+        "publicPath": "/Hanabity_Mk1/"
       },
       "favicon": "./assets/favicon.png",
-      "build":{
-          "publicPath":"/Hanabity_Mk1/"
-        }
+      "router": {
+        "origin": false
+      }
     }
   }
 }
