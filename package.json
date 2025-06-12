@@ -10,7 +10,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export:web || npx webpack --config webpack.config.js --mode production",
-    "deploy": "expo export:web && mv web-build docs && git add docs && git commit -m 'Deploy update' && git push"
+    "deploy": "expo export:web && mv web-build docs && echo 'ronaldkroening.github.io' > docs/CNAME && git add docs && git commit -m 'Deploy update' && git push"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
