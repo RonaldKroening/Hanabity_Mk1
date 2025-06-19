@@ -1,8 +1,9 @@
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { Platform, StyleSheet, ScrollView, TextInput, Text, View, TouchableOpacity } from 'react-native';
 import MatrixComponent from './components/MatrixComponent';
 import CardComponent from './components/CardComponent';
 import HintComponent from './components/HintComponent';
+
 export default function App() {
   const [players, setPlayers] = useState(5);
   const [cardsPerPlayer, setCardsPerPlayer] = useState(5);
@@ -11,13 +12,8 @@ export default function App() {
   const [chosen_colors, setChosenColors] = useState([]);
   const [chosen_numbers, setChosenNumbers] = useState([]);
   const card_colors = ['Red', 'Green', 'Blue', 'Yellow', 'White'];
-  const card_freq = {
-    1: 3,
-    2: 2,
-    3: 2,
-    4: 2,
-    5: 1
-  };
+  const card_freq = { 1: 3, 2: 2, 3: 2, 4: 2, 5: 1 };
+
   useEffect(() => {
     setChosenColors(Array(cardsPerPlayer).fill("Select"));
     setChosenNumbers(Array(cardsPerPlayer).fill("Select"));    
@@ -31,7 +27,7 @@ export default function App() {
         newColors[idx] = value;
         return newColors;
       });
-    }else{
+    } else {
       setChosenNumbers(prev => {
         const newNumbers = [...prev];
         newNumbers[idx] = value;
@@ -39,6 +35,7 @@ export default function App() {
       });
     }
   }
+
   const handleCellPress = (rowIndex, colIndex, newValue) => {
     setMatrix(prevMatrix => {
       const newMatrix = [...prevMatrix];
@@ -47,68 +44,59 @@ export default function App() {
       return newMatrix;
     });
   };
+
   const [matrix, setMatrix] = useState<number[][]>([]);
+
   function apply_hint(card, hintType) {
     let newProbabilities = { ...probabilities };
-    let card_probs = probabilities[card];
-    console.log(`Card Probabilities: ${JSON.stringify(card_probs)}`);
 
-    if(card_colors.includes(hintType)){
-      for(let color of card_colors){
-        if(color === hintType){
-          card_probs.color[color] = 1;
-        }else{
-          card_probs.color[color] = 0;
+    for (let given_card of Object.keys(newProbabilities)) {
+      let idx = parseInt(given_card);
+      let card_probs = { ...newProbabilities[given_card] };
+
+      if (parseInt(card) === idx) {
+        if (card_colors.includes(hintType)) {
+          for (let color of card_colors) {
+            card_probs.color[color] = color === hintType ? 1 : 0;
+          }
+          apply_change("color", idx, hintType);
+        }
+        if (Object.keys(card_freq).includes(hintType)) {
+          for (let number of Object.keys(card_freq)) {
+            card_probs.number[number] = number === hintType ? 1 : 0;
+          }
+          apply_change("number", idx, hintType);
+        }
+      } else {
+        if (card_colors.includes(hintType)) {
+          card_probs.color[hintType] = 0;
+        }
+        if (Object.keys(card_freq).includes(hintType)) {
+          card_probs.number[hintType] = 0;
         }
       }
-    }else{
-      for(let number of Object.keys(card_freq)){
-        if(number === hintType){
-          card_probs.number[number] = 1;
-        }else{
-          card_probs.number[number] = 0;
-        }
-      }
+
+      newProbabilities[given_card] = card_probs;
     }
+
+    setProbabilities(newProbabilities);
   }
+
   function load_tables(){
     var arr = {};
     for(let i = 0; i < cardsPerPlayer; i++){  
-      arr[i] ={
-        color: {
-          "Red": 0,
-          "Green": 0,
-          "Blue": 0,
-          "Yellow": 0,
-          "White": 0
-        },
-        number: {
-          "1": 0,
-          "2": 0,
-          "3": 0,
-          "4": 0,
-          "5": 0
-        }
-      }
+      arr[i] = {
+        color: { "Red": 0, "Green": 0, "Blue": 0, "Yellow": 0, "White": 0 },
+        number: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 }
+      };
     }
     setProbabilities(arr);
   }
+
   function reset_card(idx){
     let new_prob = {
-      color: {
-        "Red": 0,
-        "Green": 0,
-        "Blue": 0,
-        "Yellow": 0,
-        "White": 0
-      },
-      number: {
-        "1": 0,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0
-      }
+      color: { "Red": 0, "Green": 0, "Blue": 0, "Yellow": 0, "White": 0 },
+      number: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 }
     };
     let new_probs = { ...probabilities };
     let nc = [...chosen_colors];
@@ -119,8 +107,6 @@ export default function App() {
     nn[idx] = "Select";
     setChosenColors(nc);
     setChosenNumbers(nn);
-
-
   }
 
   useEffect(() => {
@@ -129,9 +115,7 @@ export default function App() {
 
   function loadMatrix() {
     const newMatrix = card_colors.map(color => {
-      return Object.keys(card_freq).map(num => {
-        return card_freq[num as unknown as keyof typeof card_freq];
-      });
+      return Object.keys(card_freq).map(num => card_freq[num]);
     });
     setMatrix(newMatrix);
   }
@@ -147,24 +131,23 @@ export default function App() {
     const maxCards = Math.min(theoreticalMax, 10);
     const clampedValue = Math.min(Math.max(num, 4), maxCards);
     setCardsPerPlayer(clampedValue);
-    
+
     if (clampedValue === maxCards) {
       console.warn(`Maximum cards per player reached (${maxCards}) with ${players} players`);
     }
   };
-  function addHint(){
+
+  function addHint() {
     setHintDisplay(true); 
   }
 
-
-
   function complete_hint(cards, hintType) {
-    for(let card of cards){
-      apply_hint(card, hintType);
+    for (let card of cards) {
+      apply_hint(card.toString(), hintType);
     }
     setHintDisplay(false);
   }
-  
+
   const incrementPlayers = () => setPlayers(prev => Math.min(prev + 1, 5));
   const decrementPlayers = () => setPlayers(prev => Math.max(prev - 1, 2));
   const incrementCards = () => setCardsPerPlayer(prev => Math.min(prev + 1, 10));
@@ -178,51 +161,35 @@ export default function App() {
         <View style={styles.settingRow}>
           <Text style={styles.settingLabel}>Players:</Text>
           <View style={styles.numberInputContainer}>
-            <TouchableOpacity onPress={decrementPlayers} style={styles.controlButton}>
-              <Text style={styles.controlText}>-</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={styles.numberInput}
-              keyboardType="numeric"
-              value={players.toString()}
-              onChangeText={handlePlayersChange}
-            />
-            <TouchableOpacity onPress={incrementPlayers} style={styles.controlButton}>
-              <Text style={styles.controlText}>+</Text>
-            </TouchableOpacity>
+            <TouchableOpacity onPress={decrementPlayers} style={styles.controlButton}><Text style={styles.controlText}>-</Text></TouchableOpacity>
+            <TextInput style={styles.numberInput} keyboardType="numeric" value={players.toString()} onChangeText={handlePlayersChange} />
+            <TouchableOpacity onPress={incrementPlayers} style={styles.controlButton}><Text style={styles.controlText}>+</Text></TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.settingRow}>
           <Text style={styles.settingLabel}>Cards per Player:</Text>
           <View style={styles.numberInputContainer}>
-            <TouchableOpacity onPress={decrementCards} style={styles.controlButton}>
-              <Text style={styles.controlText}>-</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={styles.numberInput}
-              keyboardType="numeric"
-              value={cardsPerPlayer.toString()}
-              onChangeText={handleCardsPerPlayerChange}
-            />
-            <TouchableOpacity onPress={incrementCards} style={styles.controlButton}>
-              <Text style={styles.controlText}>+</Text>
-            </TouchableOpacity>
+            <TouchableOpacity onPress={decrementCards} style={styles.controlButton}><Text style={styles.controlText}>-</Text></TouchableOpacity>
+            <TextInput style={styles.numberInput} keyboardType="numeric" value={cardsPerPlayer.toString()} onChangeText={handleCardsPerPlayerChange} />
+            <TouchableOpacity onPress={incrementCards} style={styles.controlButton}><Text style={styles.controlText}>+</Text></TouchableOpacity>
           </View>
         </View>
       </View>
 
       <MatrixComponent 
-          matrix={matrix} 
-          colors={card_colors} 
-          numbers={Object.keys(card_freq)} 
-          originalFrequencies={card_freq}
-          onCellPress={handleCellPress}
-        />
+        matrix={matrix} 
+        colors={card_colors} 
+        numbers={Object.keys(card_freq)} 
+        originalFrequencies={card_freq}
+        onCellPress={handleCellPress}
+      />
+
       <TouchableOpacity onPress={addHint} style={styles.hintBtn}>
         <Text style={styles.hintText}>Add Hint</Text>
         <HintComponent showHintDisplay={showHintDisplay} number_cards={cardsPerPlayer} colors={card_colors} numbers={Object.keys(card_freq)} return={complete_hint}/>
       </TouchableOpacity>
+
       <ScrollView horizontal={true} style={{ marginTop: 20 }} contentContainerStyle={styles.cardHdr}>
         {Object.keys(probabilities).map((card, index) => (
           <View key={index} style={styles.deckContainer}>
@@ -236,17 +203,19 @@ export default function App() {
               }}
               probabilities={probabilities[card]}
               resetCard={() => reset_card(index)}
-
+              update={(idx, newColor, newNumber) => {
+                if (newColor) apply_change("color", idx, newColor);
+                if (newNumber) apply_change("number", idx, newNumber);
+              }}
             />
           </View>
         ))}
       </ScrollView>
-
-      
-
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {

@@ -23,13 +23,17 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
+      "title": "Hanabity",
       "build": {
-        "publicPath": "/Hanabity_Mk1/"
+        "publicPath": "/Hanabity_Mk1/",
+        "basePath": "/Hanabity_Mk1"
       },
       "favicon": "./assets/favicon.png",
       "router": {
-        "origin": false
+        "origin": "https://ronaldkroening.github.io/Hanabity_Mk1/",
+        "basePath": "/Hanabity_Mk1"
       }
     }
+    
   }
 }

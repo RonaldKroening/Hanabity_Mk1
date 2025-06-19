@@ -10,13 +10,12 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export:web || npx webpack --config webpack.config.js --mode production",
-    "deploy": "expo export:web && rm -rf docs && mv web-build docs && touch docs/.nojekyll && git add docs && git commit -m 'Deploy update' && git push"
-
+    "deploy": "expo export:web && rm -rf docs && mv web-build docs && cp static.json docs/ && echo '/Hanabity_Mk1/' > docs/_redirects && touch docs/.nojekyll && git add docs && git commit -m 'Deploy update' && git push"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
     "@react-native-community/hooks": "^100.1.0",
-    "expo": "~53.0.10",
+    "expo": "^53.0.11",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -26,7 +25,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@expo/webpack-config": "^18.0.1",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3",
     "webpack": "^5.76.0",

@@ -26,6 +26,14 @@ export default function CardComponent({
   const [noNumbers, setNoNumbers] = useState([]);
 
   useEffect(() => {
+    setColor(initialColor);
+  }, [initialColor]);
+  
+  useEffect(() => {
+    setNumber(initialNumber);
+  }, [initialNumber]);
+  
+  useEffect(() => {
     const yc = options.color.filter(c => probabilities.color?.[c] === 1);
     const nc = options.color.filter(c => probabilities.color?.[c] === 0);
     const yn = options.number.filter(n => probabilities.number?.[n] === 1);
