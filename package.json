@@ -9,8 +9,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export:web || npx webpack --config webpack.config.js --mode production",
-    "deploy": "expo export:web && rm -rf docs && mv web-build docs && cp static.json docs/ && echo '/Hanabity_Mk1/' > docs/_redirects && touch docs/.nojekyll && git add docs && git commit -m 'Deploy update' && git push"
+    "build": "npx expo export --platform web",
+    "deploy": "npx expo export --platform web && rm -rf docs && mv dist docs && cp static.json docs/ && echo '/Hanabity_Mk1/' > docs/_redirects && touch docs/.nojekyll && git add docs && git commit -m 'Deploy update' && git push"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
