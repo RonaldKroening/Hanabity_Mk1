@@ -1,7 +1,6 @@
 {
-    "root": "docs",
-    "clean_urls": false,
-    "routes": {
-      "/**": "index.html"
-    }
-  }
+  "clean_urls": true,
+  "rewrites": [
+    { "source": "**", "destination": "/index.html" }
+  ]
+}
